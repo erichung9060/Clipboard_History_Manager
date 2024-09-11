@@ -1,30 +1,20 @@
-//
-//  AppDelegate.swift
-//  CopyClip2
-//
-//  Created by 洪睿廷 on 2024/8/18.
-//
-
 import Cocoa
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
-    var DisplayingNumber = 10
-    var RememberingNumber = 100
+    var displayingNumber = 10
+    var rememberingNumber = 100
     
     let recordInterval = 0.5
-    let MenuItemMaxWidth:Double = 280
-    
-    var statusMenu: NSMenu?
+    let menuItemMaxWidth:Double = 280
     
     var statusItem: NSStatusItem?
+    var statusMenu: NSMenu?
     var searchField = NSSearchField(frame: NSRect(x: 0, y: 0, width: 330, height: 28))
     
     var clipboardHistory: [String] = []
-    var showingHistory: [String] = []
     
     var lastChangeCount: Int = NSPasteboard.general.changeCount
-    var searchingTarget = ""
 
     var timer: Timer?
     
@@ -60,31 +50,25 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     }
     
     func controlTextDidChange(_ obj: Notification) {
-        if let searchField = obj.object as? NSSearchField {
-            searchFieldChanged(searchField)
-        }
-    }
-    
-    @objc func searchFieldChanged(_ sender: NSSearchField) {
-        searchingTarget = sender.stringValue
         updateMenu()
     }
-    
+
     func updateMenu() {
         while statusMenu?.items.count ?? 0 > 2 {
             statusMenu?.removeItem(at: 2)
         }
         
-        if searchingTarget != "" {
-            showingHistory = clipboardHistory.filter { $0.lowercased().contains(searchingTarget.lowercased()) }
+        var displayingHistory: [String] = []
+        if searchField.stringValue != "" {
+            displayingHistory = clipboardHistory.filter { $0.lowercased().contains(searchField.stringValue.lowercased()) }
         }else{
-            showingHistory = Array(clipboardHistory.prefix(DisplayingNumber))
+            displayingHistory = Array(clipboardHistory.prefix(displayingNumber))
         }
         
-        for (index, Word) in showingHistory.enumerated() {
+        for (index, Word) in displayingHistory.enumerated() {
             let word = truncateString(input: Word)
             
-            let menuItem = NSMenuItem(title: word, action: #selector(CopyToClipboard(_:)), keyEquivalent: "")
+            let menuItem = NSMenuItem(title: word, action: #selector(copyToClipboard(_:)), keyEquivalent: "")
             menuItem.tag = index
             statusMenu?.addItem(menuItem)
         }
@@ -98,7 +82,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         var truncatedString = ""
 
         for character in input {
-            if calculateStringWidth(truncatedString) > MenuItemMaxWidth {
+            if calculateStringWidth(truncatedString) > menuItemMaxWidth {
                 truncatedString += "..."
                 break
             }
@@ -121,27 +105,27 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         return size.width
     }
     
-    @objc func PasteBoardMonitor() {
+    @objc func pasteBoardMonitor() {
         let pasteboard = NSPasteboard.general
         if pasteboard.changeCount != lastChangeCount {
             lastChangeCount = pasteboard.changeCount
             if let copiedString = pasteboard.string(forType: .string) {
                 clipboardHistory.insert(copiedString, at: 0)
-                CheckCopyBoardMaximum()
+                checkClipBoardMaximum()
                 updateMenu()
             }
         }
     }
 
-    func CheckCopyBoardMaximum(){
-        while(clipboardHistory.count > RememberingNumber){
+    func checkClipBoardMaximum(){
+        while(clipboardHistory.count > rememberingNumber){
             clipboardHistory.removeLast()
         }
     }
     
-    @objc func CopyToClipboard(_ sender: NSMenuItem) {
+    @objc func copyToClipboard(_ sender: NSMenuItem) {
         let index = sender.tag
-        let itemToCopy = showingHistory[index]
+        let itemToCopy = clipboardHistory[index]
         clipboardHistory.removeAll { $0 == itemToCopy }
 
         updateMenu()
@@ -154,7 +138,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     @objc func showMenu() {
         if let button = statusItem?.button {
             searchField.stringValue = ""
-            searchFieldChanged(searchField)
+            updateMenu()
             
             statusItem?.menu = statusMenu
             button.performClick(nil)
@@ -163,7 +147,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     }
     
     func startMonitoringClipboard() {
-        timer = Timer.scheduledTimer(timeInterval: recordInterval, target: self, selector: #selector(PasteBoardMonitor), userInfo: nil, repeats: true)
+        timer = Timer.scheduledTimer(timeInterval: recordInterval, target: self, selector: #selector(pasteBoardMonitor), userInfo: nil, repeats: true)
         RunLoop.current.add(timer!, forMode: .common)
     }
     
@@ -171,9 +155,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         NSApplication.shared.terminate(self)
     }
     
-    
     func applicationWillTerminate(_ aNotification: Notification) {
-        // Insert code here to tear down your application
         timer?.invalidate()
     }
 

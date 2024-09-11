@@ -1,10 +1,3 @@
-//
-//  ViewController.swift
-//  CopyBoard
-//
-//  Created by 洪睿廷 on 2024/9/6.
-//
-
 import Cocoa
 
 class ViewController: NSViewController {
@@ -13,16 +6,14 @@ class ViewController: NSViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
         if let appDelegate = NSApp.delegate as? AppDelegate {
-            RememberingNumberTextField.stringValue = "\(appDelegate.RememberingNumber)"
-            DisplayingNumberTextField.stringValue = "\(appDelegate.DisplayingNumber)"
+            RememberingNumberTextField.stringValue = "\(appDelegate.rememberingNumber)"
+            DisplayingNumberTextField.stringValue = "\(appDelegate.displayingNumber)"
         }
     }
 
     override var representedObject: Any? {
         didSet {
-        // Update the view, if already loaded.
         }
     }
 
@@ -30,8 +21,8 @@ class ViewController: NSViewController {
     @IBAction func UpdateRememberingNumber(_ sender: Any) {
         if let number = Int(RememberingNumberTextField.stringValue){
             if let appDelegate = NSApp.delegate as? AppDelegate {
-                appDelegate.RememberingNumber = number
-                appDelegate.CheckCopyBoardMaximum()
+                appDelegate.rememberingNumber = number
+                appDelegate.checkClipBoardMaximum()
             }
         }
     }
@@ -39,7 +30,7 @@ class ViewController: NSViewController {
     @IBAction func UpdateDisplayingNumber(_ sender: Any) {
         if let number = Int(DisplayingNumberTextField.stringValue){
             if let appDelegate = NSApp.delegate as? AppDelegate {
-                appDelegate.DisplayingNumber = number
+                appDelegate.displayingNumber = number
             }
         }
     }
