@@ -14,7 +14,6 @@ class ViewController: NSViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        print("here")
         if let appDelegate = NSApp.delegate as? AppDelegate {
             RememberingNumberTextField.stringValue = "\(appDelegate.RememberingNumber)"
             DisplayingNumberTextField.stringValue = "\(appDelegate.DisplayingNumber)"
@@ -32,7 +31,7 @@ class ViewController: NSViewController {
         if let number = Int(RememberingNumberTextField.stringValue){
             if let appDelegate = NSApp.delegate as? AppDelegate {
                 appDelegate.RememberingNumber = number
-                appDelegate.CheckClipboarMaximum()
+                appDelegate.CheckCopyBoardMaximum()
             }
         }
     }

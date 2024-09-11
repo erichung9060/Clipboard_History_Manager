@@ -70,38 +70,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         updateMenu()
     }
     
-    func startMonitoringClipboard() {
-        timer = Timer.scheduledTimer(timeInterval: recordInterval, target: self, selector: #selector(PasteBoardMonitor), userInfo: nil, repeats: true)
-        RunLoop.current.add(timer!, forMode: .common)
-
-    }
-
-    @objc func PasteBoardMonitor() {
-        let pasteboard = NSPasteboard.general
-        if pasteboard.changeCount != lastChangeCount {
-            lastChangeCount = pasteboard.changeCount
-            if let copiedString = pasteboard.string(forType: .string) {
-                clipboardHistory.insert(copiedString, at: 0)
-                CheckClipboarMaximum()
-                updateMenu()
-            }
-        }
-    }
-
-    func CheckClipboarMaximum(){
-        while(clipboardHistory.count > RememberingNumber){
-            clipboardHistory.removeLast()
-        }
-    }
-    
     func updateMenu() {
-        guard let menuItems = statusMenu?.items else { return }
-            
-        if menuItems.count > 2 {
-            for index in (2..<menuItems.count).reversed() {
-                statusMenu?.removeItem(at: index)
-            }
+        while statusMenu?.items.count ?? 0 > 2 {
+            statusMenu?.removeItem(at: 2)
         }
+        
         if searchingTarget != "" {
             showingHistory = clipboardHistory.filter { $0.lowercased().contains(searchingTarget.lowercased()) }
         }else{
@@ -109,11 +82,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         }
         
         for (index, Word) in showingHistory.enumerated() {
-            print(Word)
             let word = truncateString(input: Word)
-            print("start:"+word+":end")
             
-            let menuItem = NSMenuItem(title: word, action: #selector(copyToClipboard(_:)), keyEquivalent: "")
+            let menuItem = NSMenuItem(title: word, action: #selector(CopyToClipboard(_:)), keyEquivalent: "")
             menuItem.tag = index
             statusMenu?.addItem(menuItem)
         }
@@ -123,12 +94,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         statusMenu?.addItem(NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q"))
     }
     
-    
     func truncateString(input: String) -> String {
         var truncatedString = ""
 
         for character in input {
             if calculateStringWidth(truncatedString) > MenuItemMaxWidth {
+                truncatedString += "..."
                 break
             }
 
@@ -139,11 +110,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
             }
         }
 
-        if truncatedString != input {
-            truncatedString += "..."
-        }
         return truncatedString
     }
+    
     func calculateStringWidth(_ string: String) -> CGFloat {
         let font = NSFont.systemFont(ofSize: 16)
 
@@ -152,7 +121,25 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         return size.width
     }
     
-    @objc func copyToClipboard(_ sender: NSMenuItem) {
+    @objc func PasteBoardMonitor() {
+        let pasteboard = NSPasteboard.general
+        if pasteboard.changeCount != lastChangeCount {
+            lastChangeCount = pasteboard.changeCount
+            if let copiedString = pasteboard.string(forType: .string) {
+                clipboardHistory.insert(copiedString, at: 0)
+                CheckCopyBoardMaximum()
+                updateMenu()
+            }
+        }
+    }
+
+    func CheckCopyBoardMaximum(){
+        while(clipboardHistory.count > RememberingNumber){
+            clipboardHistory.removeLast()
+        }
+    }
+    
+    @objc func CopyToClipboard(_ sender: NSMenuItem) {
         let index = sender.tag
         let itemToCopy = showingHistory[index]
         clipboardHistory.removeAll { $0 == itemToCopy }
@@ -175,6 +162,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         }
     }
     
+    func startMonitoringClipboard() {
+        timer = Timer.scheduledTimer(timeInterval: recordInterval, target: self, selector: #selector(PasteBoardMonitor), userInfo: nil, repeats: true)
+        RunLoop.current.add(timer!, forMode: .common)
+    }
+    
     @objc func quitApp() {
         NSApplication.shared.terminate(self)
     }
@@ -188,8 +180,4 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
         return true
     }
-    
-    
-
 }
-
