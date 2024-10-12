@@ -2,17 +2,18 @@ import Cocoa
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
-    var displayingNumber = 10
-    var rememberingNumber = 100
+    var displayingNumber = 100
+    var rememberingNumber = 1000
     
     let recordInterval = 0.5
-    let menuItemMaxWidth:Double = 280
+    let menuItemMaxWidth = 280.0
     
-    var statusItem: NSStatusItem?
-    var statusMenu: NSMenu?
-    var searchField = NSSearchField(frame: NSRect(x: 0, y: 0, width: 330, height: 28))
+    var statusItem: NSStatusItem! = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+    var searchField: NSSearchField! = NSSearchField()
+    var statusMenu: NSMenu! = NSMenu()
     
     var clipboardHistory: [String] = []
+    var displayingHistory: [String] = []
     
     var lastChangeCount: Int = NSPasteboard.general.changeCount
 
@@ -20,45 +21,37 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         NSApp.setActivationPolicy(.accessory)
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         
-        if let button = statusItem?.button {
+        // set menu button
+        if let button = statusItem.button {
             button.image = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: nil)
             button.action = #selector(showMenu)
             button.target = self
         }
         
-        statusMenu = NSMenu()
-        
+        // set search field
+        searchField.frame = NSRect(x: 10, y: 0, width: 330 - 2 * 10, height: 27)
         searchField.placeholderString = "Search history..."
         searchField.target = self
         searchField.delegate = self
-
-        let searchMenuItem = NSMenuItem()
-        searchMenuItem.view = searchField
-        statusMenu?.addItem(searchMenuItem)
-        updateMenu()
         
+        
+        // add search field into Menu
+        let containerView = NSView(frame: NSRect(x: 0, y: 0, width: 330, height: 27))
+        containerView.addSubview(searchField)
+        let searchMenuItem = NSMenuItem()
+        searchMenuItem.view = containerView
+        statusMenu.addItem(searchMenuItem)
+        
+        updateMenu()
         startMonitoringClipboard()
     }
     
-    @objc func showPreferences() {
-        let storyboard = NSStoryboard(name: "Main", bundle: nil)
-        let preferencesWindowController = storyboard.instantiateController(withIdentifier: "PreferencesWindowController") as? NSWindowController
-        preferencesWindowController?.showWindow(self)
-        NSApp.activate(ignoringOtherApps: true)
-    }
-    
-    func controlTextDidChange(_ obj: Notification) {
-        updateMenu()
-    }
-
     func updateMenu() {
-        while statusMenu?.items.count ?? 0 > 2 {
-            statusMenu?.removeItem(at: 2)
+        while statusMenu.items.count > 2 {
+            statusMenu.removeItem(at: 2)
         }
         
-        var displayingHistory: [String] = []
         if searchField.stringValue != "" {
             displayingHistory = clipboardHistory.filter { $0.lowercased().contains(searchField.stringValue.lowercased()) }
         }else{
@@ -73,9 +66,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
             statusMenu?.addItem(menuItem)
         }
         
-        statusMenu?.addItem(NSMenuItem.separator())
-        statusMenu?.addItem(NSMenuItem(title: "Preferences", action: #selector(showPreferences), keyEquivalent: ","))
-        statusMenu?.addItem(NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q"))
+        statusMenu.addItem(NSMenuItem.separator())
+        statusMenu.addItem(NSMenuItem(title: "Preferences", action: #selector(showPreferences), keyEquivalent: ","))
+        statusMenu.addItem(NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q"))
     }
     
     func truncateString(input: String) -> String {
@@ -125,7 +118,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     
     @objc func copyToClipboard(_ sender: NSMenuItem) {
         let index = sender.tag
-        let itemToCopy = clipboardHistory[index]
+        let itemToCopy = displayingHistory[index]
         clipboardHistory.removeAll { $0 == itemToCopy }
 
         updateMenu()
@@ -135,15 +128,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         pasteboard.setString(itemToCopy, forType: .string)
     }
     
+    @objc func showPreferences() {
+        let storyboard = NSStoryboard(name: "Main", bundle: nil)
+        let preferencesWindowController = storyboard.instantiateController(withIdentifier: "PreferencesWindowController") as? NSWindowController
+        preferencesWindowController?.showWindow(self)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+    
     @objc func showMenu() {
-        if let button = statusItem?.button {
+        if let button = statusItem.button {
             searchField.stringValue = ""
             updateMenu()
             
-            statusItem?.menu = statusMenu
+            statusItem.menu = statusMenu
             button.performClick(nil)
-            statusItem?.menu = nil
+            statusItem.menu = nil
         }
+    }
+    
+    func controlTextDidChange(_ obj: Notification) {
+        updateMenu()
     }
     
     func startMonitoringClipboard() {
