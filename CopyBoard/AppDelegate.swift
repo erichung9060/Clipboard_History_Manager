@@ -76,7 +76,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
 
         for character in input {
             if calculateStringWidth(truncatedString) > menuItemMaxWidth {
-                truncatedString += "..."
+                truncatedString += " ..."
                 break
             }
 
