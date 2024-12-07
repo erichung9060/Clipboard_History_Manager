@@ -41,7 +41,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         containerView.addSubview(searchField)
         let searchMenuItem = NSMenuItem()
         searchMenuItem.view = containerView
+        
         statusMenu.addItem(searchMenuItem)
+        statusMenu.addItem(NSMenuItem.separator())
         
         updateMenu()
         startMonitoringClipboard()
@@ -63,20 +65,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
             
             let menuItem = NSMenuItem(title: word, action: #selector(copyToClipboard(_:)), keyEquivalent: "")
             menuItem.tag = index
-            statusMenu?.addItem(menuItem)
+            statusMenu.addItem(menuItem)
         }
         
-        statusMenu.addItem(NSMenuItem.separator())
+        if displayingHistory.count != 0 { statusMenu.addItem(NSMenuItem.separator()) }
+        statusMenu.addItem(NSMenuItem(title: "Clear All", action: #selector(clearClipboardHistory), keyEquivalent: "c"))
         statusMenu.addItem(NSMenuItem(title: "Preferences", action: #selector(showPreferences), keyEquivalent: ","))
         statusMenu.addItem(NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q"))
     }
     
     func truncateString(input: String) -> String {
         var truncatedString = ""
-
         for character in input {
             if calculateStringWidth(truncatedString) > menuItemMaxWidth {
-                truncatedString += "..."
+                truncatedString += " ..."
                 break
             }
 
@@ -126,6 +128,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(itemToCopy, forType: .string)
+    }
+    
+    @objc func clearClipboardHistory() {
+        clipboardHistory.removeAll()
+        updateMenu()
     }
     
     @objc func showPreferences() {
