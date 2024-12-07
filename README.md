@@ -7,6 +7,5 @@
 
 
 ## Demo
-<img width="402" alt="Screenshot 2024-09-11 at 2 17 25 PM" src="https://github.com/user-attachments/assets/8123018e-4173-4f50-8b5e-9317499ec253">
-
+<img width="412" alt="image" src="https://github.com/user-attachments/assets/8b84bf59-c29e-4649-81ab-ee86c65fa5a8">
 
