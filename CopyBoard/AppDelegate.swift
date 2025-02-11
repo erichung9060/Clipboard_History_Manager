@@ -2,7 +2,7 @@ import Cocoa
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
-    var displayingNumber = 100
+    var displayingNumber = 300
     var rememberingNumber = 1000
     
     let recordInterval = 0.5
@@ -76,7 +76,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     
     func truncateString(input: String) -> String {
         var truncatedString = ""
-        for character in input {
+        for character in input where !character.isWhitespace {
             if calculateStringWidth(truncatedString) > menuItemMaxWidth {
                 truncatedString += " ..."
                 break
