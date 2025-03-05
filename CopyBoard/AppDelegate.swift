@@ -76,13 +76,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     
     func truncateString(input: String) -> String {
         var truncatedString = ""
-        for character in input where !character.isWhitespace {
+        for character in input{
             if calculateStringWidth(truncatedString) > menuItemMaxWidth {
                 truncatedString += " ..."
                 break
             }
 
-            if character == "\n"{
+            if character == "\n" || character == "\t" {
                 truncatedString.append(" ")
             }else{
                 truncatedString.append(character)
