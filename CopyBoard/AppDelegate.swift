@@ -82,7 +82,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
                 break
             }
 
-            if character == "\n" || character == "\t" {
+            if character == "\n" || character == "\r" || character == "\t" {
                 truncatedString.append(" ")
             }else{
                 truncatedString.append(character)
