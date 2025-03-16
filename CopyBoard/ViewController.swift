@@ -28,11 +28,10 @@ class ViewController: NSViewController {
     }
     
     @IBAction func UpdateDisplayingNumber(_ sender: Any) {
-        if let number = Int(DisplayingNumberTextField.stringValue){
+        if let number = Int(DisplayingNumberTextField.stringValue.replacingOccurrences(of: ",", with: "")){
             if let appDelegate = NSApp.delegate as? AppDelegate {
                 appDelegate.displayingNumber = number
             }
         }
     }
 }
-
