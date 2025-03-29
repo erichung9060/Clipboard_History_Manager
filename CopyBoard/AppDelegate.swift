@@ -2,7 +2,7 @@ import Cocoa
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
-    var displayingNumber = 3
+    var displayingNumber = 100
     var rememberingNumber = 1000
     
     let recordInterval = 0.5
