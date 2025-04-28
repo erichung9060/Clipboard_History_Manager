@@ -19,10 +19,13 @@ class ViewController: NSViewController {
 
     
     @IBAction func UpdateRememberingNumber(_ sender: Any) {
-        if let number = Int(RememberingNumberTextField.stringValue){
+        if let number = Int(RememberingNumberTextField.stringValue) {
             if let appDelegate = NSApp.delegate as? AppDelegate {
+                let originalNumber = appDelegate.rememberingNumber
                 appDelegate.rememberingNumber = number
-                appDelegate.checkClipBoardMaximum()
+                if number < originalNumber {
+                    appDelegate.updateRememberingNumber()
+                }
             }
         }
     }

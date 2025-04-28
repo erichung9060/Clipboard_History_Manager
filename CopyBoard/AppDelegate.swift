@@ -80,10 +80,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         }
     }
     
-    func saveHistoryToFile() {
+    func moveHistoryToFile() {
         do {
             let data = try JSONSerialization.data(withJSONObject: clipboardHistory)
             try data.write(to: historyFileURL)
+            clipboardHistory.removeAll()
         } catch {
             print("Error saving history: \(error)")
         }
@@ -154,10 +155,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
                 clipboardHistory.insert(copiedString, at: 0)
                 checkClipBoardMaximum()
                 
-                saveHistoryToFile()
-                clipboardHistory.removeAll()
+                moveHistoryToFile()
             }
         }
+    }
+    func updateRememberingNumber(){
+        loadHistoryFromFile()
+        checkClipBoardMaximum()
+        moveHistoryToFile()
     }
 
     func checkClipBoardMaximum(){
@@ -198,13 +203,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
             button.performClick(nil)
             statusItem.menu = nil
             
-            saveHistoryToFile()
+            moveHistoryToFile()
 
+            displayingHistory.removeAll()
             while statusMenu.items.count > 2 {
                 statusMenu.removeItem(at: 2)
             }
-            clipboardHistory.removeAll()
-            displayingHistory.removeAll()
         }
     }
     
