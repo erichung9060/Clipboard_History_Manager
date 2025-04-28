@@ -11,7 +11,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     var statusItem: NSStatusItem! = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     var searchField: NSSearchField! = NSSearchField()
     var statusMenu: NSMenu! = NSMenu()
-    
+
     var clipboardHistory: [String] = []
     var displayingHistory: [String] = []
     
@@ -19,8 +19,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
 
     var timer: Timer?
     
+    let fileManager = FileManager.default
+    var historyFileURL: URL {
+        let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let bundleID = Bundle.main.bundleIdentifier ?? "com.copyboard"
+        let appFolderURL = appSupportURL.appendingPathComponent(bundleID)
+        return appFolderURL.appendingPathComponent("clipboard_history.txt")
+    }
+    
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        
+        createApplicationSupportDirectory()
         
         // set menu button
         if let button = statusItem.button {
@@ -35,7 +45,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         searchField.target = self
         searchField.delegate = self
         
-        
         // add search field into Menu
         let containerView = NSView(frame: NSRect(x: 0, y: 0, width: 330, height: 27))
         containerView.addSubview(searchField)
@@ -45,16 +54,46 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         statusMenu.addItem(searchMenuItem)
         statusMenu.addItem(NSMenuItem.separator())
         
-        updateMenu()
         startMonitoringClipboard()
-
+    }
+    
+    func createApplicationSupportDirectory() {
+        let fileURL = historyFileURL
+        let directoryURL = fileURL.deletingLastPathComponent()
+        
+        do {
+            try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        } catch {
+            print("Error creating directory: \(error)")
+        }
+    }
+    
+    func loadHistoryFromFile() {
+        do {
+            let data = try Data(contentsOf: historyFileURL)
+            if let history = try JSONSerialization.jsonObject(with: data) as? [String] {
+                clipboardHistory = history
+            }
+        } catch {
+            print("Error loading history: \(error)")
+            clipboardHistory = []
+        }
+    }
+    
+    func saveHistoryToFile() {
+        do {
+            let data = try JSONSerialization.data(withJSONObject: clipboardHistory)
+            try data.write(to: historyFileURL)
+        } catch {
+            print("Error saving history: \(error)")
+        }
     }
     
     func updateMenu() {
         while statusMenu.items.count > 2 {
             statusMenu.removeItem(at: 2)
         }
-        
+
         if searchField.stringValue != "" {
             displayingHistory = clipboardHistory.filter { $0.lowercased().contains(searchField.stringValue.lowercased()) }
         }else{
@@ -105,14 +144,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         return truncatedString
     }
     
-    @objc func pasteBoardMonitor() {
+    @objc func pasteBoardMonitor() { // new copied string
         let pasteboard = NSPasteboard.general
         if pasteboard.changeCount != lastChangeCount {
             lastChangeCount = pasteboard.changeCount
             if let copiedString = pasteboard.string(forType: .string) {
+                loadHistoryFromFile()
+                
                 clipboardHistory.insert(copiedString, at: 0)
                 checkClipBoardMaximum()
-                updateMenu()
+                
+                saveHistoryToFile()
+                clipboardHistory.removeAll()
             }
         }
     }
@@ -127,8 +170,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         let index = sender.tag
         let itemToCopy = displayingHistory[index]
         clipboardHistory.removeAll { $0 == itemToCopy }
-
-        updateMenu()
         
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
@@ -137,7 +178,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     
     @objc func clearClipboardHistory() {
         clipboardHistory.removeAll()
-        updateMenu()
     }
     
     @objc func showPreferences() {
@@ -149,12 +189,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     
     @objc func showMenu() {
         if let button = statusItem.button {
+            loadHistoryFromFile()
+            
             searchField.stringValue = ""
             updateMenu()
             
             statusItem.menu = statusMenu
             button.performClick(nil)
             statusItem.menu = nil
+            
+            saveHistoryToFile()
+
+            while statusMenu.items.count > 2 {
+                statusMenu.removeItem(at: 2)
+            }
+            clipboardHistory.removeAll()
+            displayingHistory.removeAll()
         }
     }
     
