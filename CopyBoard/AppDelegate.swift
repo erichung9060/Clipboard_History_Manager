@@ -6,7 +6,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     var rememberingNumber = 1000
     
     let recordInterval = 0.5
-    let menuItemMaxWidth = 320.0
+    let menuItemMaxWidth = 300.0
     
     var statusItem: NSStatusItem! = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     var searchField: NSSearchField! = NSSearchField()
@@ -47,6 +47,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         
         updateMenu()
         startMonitoringClipboard()
+
     }
     
     func updateMenu() {
@@ -76,7 +77,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     
 
     func truncateString(input: String) -> String {
-        let font = NSFont(name: "SF Mono", size: 16) ?? NSFont.monospacedSystemFont(ofSize: 16, weight: .regular)
+        let font = NSFont.systemFont(ofSize: 16)
         let attributes: [NSAttributedString.Key: Any] = [.font: font]
 
         var truncatedString = ""
