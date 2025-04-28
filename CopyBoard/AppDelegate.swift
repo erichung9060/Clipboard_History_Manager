@@ -6,7 +6,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     var rememberingNumber = 1000
     
     let recordInterval = 0.5
-    let menuItemMaxWidth = 280.0
+    let menuItemMaxWidth = 320.0
     
     var statusItem: NSStatusItem! = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     var searchField: NSSearchField! = NSSearchField()
@@ -74,30 +74,34 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         statusMenu.addItem(NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q"))
     }
     
+
     func truncateString(input: String) -> String {
+        let font = NSFont(name: "SF Mono", size: 16) ?? NSFont.monospacedSystemFont(ofSize: 16, weight: .regular)
+        let attributes: [NSAttributedString.Key: Any] = [.font: font]
+
         var truncatedString = ""
-        for character in input{
-            if calculateStringWidth(truncatedString) > menuItemMaxWidth {
+        var currentWidth: CGFloat = 0
+        let ellipsisWidth = (" ..." as NSString).size(withAttributes: attributes).width
+
+        for character in input {
+            let charStr = String(character) as NSString
+            let charWidth = charStr.size(withAttributes: attributes).width
+
+            if currentWidth + charWidth + ellipsisWidth > menuItemMaxWidth {
                 truncatedString += " ..."
                 break
             }
 
             if character == "\n" || character == "\r" || character == "\t" {
                 truncatedString.append(" ")
-            }else{
+                currentWidth += (" " as NSString).size(withAttributes: attributes).width
+            } else {
                 truncatedString.append(character)
+                currentWidth += charWidth
             }
         }
 
         return truncatedString
-    }
-    
-    func calculateStringWidth(_ string: String) -> CGFloat {
-        let font = NSFont.systemFont(ofSize: 16)
-
-        let attributes = [NSAttributedString.Key.font: font]
-        let size = (string as NSString).size(withAttributes: attributes)
-        return size.width
     }
     
     @objc func pasteBoardMonitor() {
