@@ -69,6 +69,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     }
     
     func loadHistoryFromFile() {
+        guard fileManager.fileExists(atPath: historyFileURL.path) else {
+            clipboardHistory = []
+            return
+        }
+        
         do {
             let data = try Data(contentsOf: historyFileURL)
             if let history = try JSONSerialization.jsonObject(with: data) as? [String] {
