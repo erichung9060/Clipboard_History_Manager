@@ -156,14 +156,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         let pasteboard = NSPasteboard.general
         if pasteboard.changeCount != lastChangeCount {
             lastChangeCount = pasteboard.changeCount
-            if let copiedString = pasteboard.string(forType: .string) {
-                loadHistoryFromFile()
+            
+            loadHistoryFromFile()
 
-                clipboardHistory.insert(copiedString, at: 0)
-                checkClipBoardMaximum()
-                
-                moveHistoryToFile()
-            }
+            guard let copiedString = pasteboard.string(forType: .string) else { return }
+            clipboardHistory.insert(copiedString, at: 0)
+            checkClipBoardMaximum()
+            
+            moveHistoryToFile()
         }
     }
     func updateRememberingNumber(){
@@ -182,7 +182,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         guard let itemToCopy = sender.representedObject as? String else { return }
         
         clipboardHistory.removeAll { $0 == itemToCopy }
-        
+        clipboardHistory.insert(itemToCopy, at: 0)
+
+        lastChangeCount += 1
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(itemToCopy, forType: .string)
