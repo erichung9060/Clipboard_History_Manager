@@ -1,7 +1,7 @@
 import Cocoa
 
 @main
-class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSTextFieldDelegate {
     var displayingNumber = 100
     var rememberingNumber = 1000
     
@@ -9,7 +9,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     let menuItemMaxWidth = 300.0
     
     var statusItem: NSStatusItem! = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    var searchField: NSSearchField! = NSSearchField()
+    var searchField: NSTextField! = NSTextField()
     var statusMenu: NSMenu! = NSMenu()
 
     var clipboardHistory: [String] = []
@@ -43,6 +43,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         searchField.placeholderString = "Search history..."
         searchField.target = self
         searchField.delegate = self
+        searchField.bezelStyle = .roundedBezel
+        searchField.isBordered = true
+        searchField.isBezeled = true
         
         // add search field into Menu
         let containerView = NSView(frame: NSRect(x: 0, y: 0, width: 330, height: 27))
