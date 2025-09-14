@@ -2,8 +2,8 @@ import Cocoa
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate, NSTextFieldDelegate {
-    var displayingNumber = 100
-    var rememberingNumber = 1000
+    var displayingNumber = UserDefaults.standard.object(forKey: "displayingNumber") as? Int ?? 100
+    var rememberingNumber = UserDefaults.standard.object(forKey: "rememberingNumber") as? Int ?? 1000
     
     let recordInterval = 0.5
     let menuItemMaxWidth = 300.0
