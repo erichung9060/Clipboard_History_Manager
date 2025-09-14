@@ -13,7 +13,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     var statusMenu: NSMenu! = NSMenu()
 
     var clipboardHistory: [String] = []
-    var displayingHistory: [String] = []
     
     var lastChangeCount: Int = NSPasteboard.general.changeCount
 
@@ -100,21 +99,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
             statusMenu.removeItem(at: 2)
         }
 
+        var displayingHistory: [String] = []
         if searchField.stringValue != "" {
             displayingHistory = clipboardHistory.filter { $0.lowercased().contains(searchField.stringValue.lowercased()) }
         }else{
             displayingHistory = Array(clipboardHistory.prefix(displayingNumber))
         }
         
-        for (index, Word) in displayingHistory.enumerated() {
+        for Word in displayingHistory {
             let word = truncateString(input: Word)
             
             let menuItem = NSMenuItem(title: word, action: #selector(copyToClipboard(_:)), keyEquivalent: "")
-            menuItem.tag = index
+            menuItem.representedObject = Word
             statusMenu.addItem(menuItem)
         }
         
-        if displayingHistory.count != 0 { statusMenu.addItem(NSMenuItem.separator()) }
+        if displayingHistory.count != 0 { 
+            statusMenu.addItem(NSMenuItem.separator()) 
+        }
         statusMenu.addItem(NSMenuItem(title: "Clear All", action: #selector(clearClipboardHistory), keyEquivalent: "c"))
         statusMenu.addItem(NSMenuItem(title: "Preferences", action: #selector(showPreferences), keyEquivalent: ","))
         statusMenu.addItem(NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q"))
@@ -150,13 +152,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
         return truncatedString
     }
     
-    @objc func pasteBoardMonitor() { // new copied string
+    @objc func pasteBoardMonitor() {
         let pasteboard = NSPasteboard.general
         if pasteboard.changeCount != lastChangeCount {
             lastChangeCount = pasteboard.changeCount
             if let copiedString = pasteboard.string(forType: .string) {
                 loadHistoryFromFile()
-                
+
                 clipboardHistory.insert(copiedString, at: 0)
                 checkClipBoardMaximum()
                 
@@ -177,8 +179,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
     }
     
     @objc func copyToClipboard(_ sender: NSMenuItem) {
-        let index = sender.tag
-        let itemToCopy = displayingHistory[index]
+        guard let itemToCopy = sender.representedObject as? String else { return }
+        
         clipboardHistory.removeAll { $0 == itemToCopy }
         
         let pasteboard = NSPasteboard.general
@@ -210,7 +212,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSearchFieldDelegate {
             
             moveHistoryToFile()
 
-            displayingHistory.removeAll()
             while statusMenu.items.count > 2 {
                 statusMenu.removeItem(at: 2)
             }
