@@ -19,11 +19,10 @@ class ViewController: NSViewController {
 
     
     @IBAction func UpdateRememberingNumber(_ sender: Any) {
-        if let number = Int(RememberingNumberTextField.stringValue) {
+        if let number = Int(RememberingNumberTextField.stringValue.replacingOccurrences(of: ",", with: "")) {
             if let appDelegate = NSApp.delegate as? AppDelegate {
                 let originalNumber = appDelegate.rememberingNumber
                 appDelegate.rememberingNumber = number
-                UserDefaults.standard.set(number, forKey: "rememberingNumber")
                 if number < originalNumber {
                     appDelegate.updateRememberingNumber()
                 }
@@ -35,7 +34,6 @@ class ViewController: NSViewController {
         if let number = Int(DisplayingNumberTextField.stringValue.replacingOccurrences(of: ",", with: "")){
             if let appDelegate = NSApp.delegate as? AppDelegate {
                 appDelegate.displayingNumber = number
-                UserDefaults.standard.set(number, forKey: "displayingNumber")
             }
         }
     }
